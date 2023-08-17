@@ -1,0 +1,73 @@
+{% extends 'osa_gpt/base.html' %}
+
+{% block 'title' %}
+  Создать заявку
+{% endblock %}
+
+{% block 'body' %}
+
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Заявки /</span> Новая заявка</h4>
+
+    <div class="row">
+
+        <!-- Form controls -->
+        <div class="col-md-6 my-form-border">
+            <div class="card mb-4 my-form-area">
+            <h5 class="card-header">Подать заявку</h5>
+                <div class="card-body">
+
+                    <form id="applicationForm" method="post" action="{% url 'osa_gpt:new_application' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {% if messages %}
+                          <ul class="messages">
+                              {% for message in messages %}
+                                  <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                              {% endfor %}
+                          </ul>
+                        {% endif %}
+
+                        <input class="my-filling-fields" type="hidden" id="tg-id-input" value="" name="tlg_id">
+
+                        <div class="mb-3">
+                            <label for="name-input" class="form-label my-label">Ваше имя</label>
+                            <input
+                            type="text"
+                            class="form-control my-filling-fields"
+                            id="name-input"
+                            placeholder="Как к Вам можно обращаться?"
+                            name="client_name"
+                            maxlength="150"
+                            required
+                            />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="phone-input" class="form-label my-label">Номер телефона</label>
+                            <input
+                            type="text"
+                            class="form-control my-filling-fields"
+                            id="phone-input"
+                            placeholder="+79787776655"
+                            name="phone_number"
+                            maxlength="50"
+                            required
+                            />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="problem-description" class="form-label my-label">Описание ситуации</label>
+                            <textarea class="form-control my-filling-fields" id="problem-description" rows="3" name="description" maxlength="1000" placeholder="Подробно опишите ситуацию, с которой столкнулись, чтобы наш специалист смог Вам помочь"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <button id="createButton" type="submit" class="btn rounded-pill btn-info my-btn-clr">Подать заявку</button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
