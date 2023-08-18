@@ -1,6 +1,7 @@
 import re
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import View
@@ -12,9 +13,10 @@ from rest_framework.views import APIView
 
 from osa_expert_admin.settings import MY_LOGGER, BOT_TOKEN
 from osa_gpt.forms import NewApplicationForm
-from osa_gpt.models import BotUser, BotSettings, Applications
+from osa_gpt.gpt_processing import make_embeddings
+from osa_gpt.models import BotUser, BotSettings, Applications, KnowledgeBaseChunks
 from osa_gpt.serializers import GetSettingsSerializer
-from osa_gpt.tasks import send_notifications
+from osa_gpt.tasks import send_notifications, knowledge_base_processing
 
 
 class WriteUsrView(APIView):
@@ -30,14 +32,14 @@ class WriteUsrView(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST, data='invalid token')
 
         MY_LOGGER.debug(f'Записываем/обновляем данные о юзере в БД')
-        bot_usr_obj, created = BotUser.objects.update_or_create(
+        bot_usr_obj, created = BotUser.objects.get_or_create(
             tlg_id=request.data.get("tlg_id"),
             defaults={
                 "tlg_id": request.data.get("tlg_id"),
                 "tlg_username": request.data.get("tlg_username"),
             }
         )
-        MY_LOGGER.success(f'Данные о юзере успешно {"созданы" if created else "обновлены"} даём ответ на запрос.')
+        MY_LOGGER.success(f'Данные о юзере успешно {"созданы" if created else "получены"} даём ответ на запрос.')
         return Response(data=f'success {"write" if created else "update"} object of bot user!',
                         status=status.HTTP_200_OK)
 
@@ -128,3 +130,44 @@ class NewApplication(View):
             MY_LOGGER.warning(f'Форма не прошла валидацию: {form.errors!r}')
             err_msgs.error(request, message=f'Невалидные данные формы. {form.errors!r}')
             return redirect(to=reverse_lazy('osa_gpt:new_application'))
+
+
+class UploadKnowledgeBaseView(View):
+    """
+    Вьюшки для загрузки базы знаний
+    """
+    def get(self, request):
+        MY_LOGGER.debug(f'Получен GET запрос для отображения формы загрузки БЗ.')
+
+        if not request.user.is_staff:
+            MY_LOGGER.warning(f'Юзер, выполнивший запрос, не имеет статус staff. Редиректим для авторизации')
+            return redirect(to=f'/admin/login/?next={reverse_lazy("osa_gpt:upload_knowledge_base")}')
+
+        context = {}
+        return render(request, template_name='osa_gpt/upload_knowledge_base.html', context=context)
+
+    def post(self, request):
+        MY_LOGGER.debug(f'POST запрос на вьюшку загрузки БЗ')
+
+        if not request.user.is_staff:
+            MY_LOGGER.warning(f'Юзер, выполнивший запрос, не имеет статус staff. Редиректим для авторизации')
+            return redirect(to=f'/admin/login/?next={reverse_lazy("mytlg:upload_new_channels")}')
+
+        if not request.FILES.get("file"):
+            MY_LOGGER.warning(f'Отсутствует файл в запросе!')
+            return HttpResponse(content='Отсутствует файл в запросе', status=400)
+
+        file = request.FILES.get("file")
+        knowledge_base_processing.delay(knowledge_base_text=file.read().decode())
+        return HttpResponse(content=f'Получил файлы, спасибо.')
+
+
+
+
+
+def test_view(request):
+    chunks = make_embeddings(knowledge_base_path='/home/da/PycharmProjects/osa_expert_admin/База_знаний_УИИ.txt')
+    context = {
+        'chunks': chunks,
+    }
+    return render(request, template_name='osa_gpt/test.html', context=context)

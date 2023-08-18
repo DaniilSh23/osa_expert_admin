@@ -25,6 +25,10 @@ echo "from django.contrib.auth import get_user_model; User = get_user_model(); U
 #echo "Load DB data from fixture"
 #python manage.py loaddata db_data_*
 
+## Download nltk dependencies
+echo "Download nltk dependencies"
+python3 -c "import nltk; nltk.download('punkt')"
+
 # Start celery
 echo "Starting celery"
 celery -A osa_expert_admin worker -l INFO -B &

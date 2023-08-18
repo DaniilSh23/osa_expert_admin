@@ -45,3 +45,16 @@ class Applications(models.Model):
         ordering = ['-id']
         verbose_name = 'заявка'
         verbose_name_plural = 'заявки'
+
+
+class KnowledgeBaseChunks(models.Model):
+    """
+    Модель для хранения эмбеддингов разбитой на чанки базы знаний.
+    """
+    text = models.TextField(verbose_name='текст чанка')
+    embedding = models.TextField(verbose_name='эмбеддинги')
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = 'чанк базы знаний'
+        verbose_name_plural = 'чанки базы знаний'

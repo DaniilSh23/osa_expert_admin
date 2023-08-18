@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from osa_gpt.models import BotUser, BotSettings, Applications
+from osa_gpt.models import BotUser, BotSettings, Applications, KnowledgeBaseChunks
 
 
 @admin.register(BotUser)
@@ -49,3 +49,23 @@ class ApplicationsAdmin(admin.ModelAdmin):
         "created_at",
         "bot_user",
     )
+
+
+@admin.register(KnowledgeBaseChunks)
+class KnowledgeBaseChunksAdmin(admin.ModelAdmin):
+    list_display = (
+        "pk",
+        "text_short"
+    )
+    list_display_links = (
+        "pk",
+        "text_short"
+    )
+
+    def text_short(self, obj: KnowledgeBaseChunks):
+        """
+        Метод, который возвращает сокращенное описание, если оно длиннее 48 символов.
+        """
+        if len(obj.text) < 48:
+            return obj.text
+        return ''.join([obj.text[:48], '...'])

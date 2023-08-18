@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Загрузка базы знаний</title>
+</head>
+<body>
+<h1>Загрузка базы знаний</h1>
+<form action="{% url 'osa_gpt:upload_knowledge_base' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div>
+        <label for="knowledge_base_file">Выберите файл с базой знаний:</label>
+        <input type="file" name="file" id="knowledge_base_file">
+        <br><small>Это должен быть файл с расширением .txt</small>
+    </div>
+    <button type="submit">Загрузить</button>
+</form>
+
+</body>
+</html>
