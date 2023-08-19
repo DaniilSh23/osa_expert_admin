@@ -6,6 +6,8 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import View
 from django.contrib import messages as err_msgs
+from langchain import FAISS
+from langchain.embeddings import OpenAIEmbeddings
 from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -13,8 +15,8 @@ from rest_framework.views import APIView
 
 from osa_expert_admin.settings import MY_LOGGER, BOT_TOKEN
 from osa_gpt.forms import NewApplicationForm
-from osa_gpt.gpt_processing import make_embeddings
-from osa_gpt.models import BotUser, BotSettings, Applications, KnowledgeBaseChunks
+from osa_gpt.gpt_processing import make_embeddings, relevant_text_preparation, request_to_gpt
+from osa_gpt.models import BotUser, BotSettings, Applications, KnowledgeBaseChunks, PromptsAI
 from osa_gpt.serializers import GetSettingsSerializer
 from osa_gpt.tasks import send_notifications, knowledge_base_processing
 
@@ -162,12 +164,47 @@ class UploadKnowledgeBaseView(View):
         return HttpResponse(content=f'Получил файлы, спасибо.')
 
 
+class AnswerGPT(APIView):
+    """
+    Обработка вопросов пользователя и генерирование ответа моделью OpenAI.
+    """
+    def get(self, request):
+        MY_LOGGER.info(f'GET запрос на вьюшку генерирования ответа нейронкой.')
 
+        if not request.GET.get('token') or request.GET.get('token') != BOT_TOKEN:
+            MY_LOGGER.warning(f'Неверный токен в запросе: {request.GET!r}')
+            return Response(data='invalid token', status=status.HTTP_400_BAD_REQUEST)
+
+        if not request.GET.get('msg'):
+            MY_LOGGER.warning(f'В запросе отсутствует параметр msg: {request.GET!r}')
+            return Response(data='msg param is required!', status=status.HTTP_400_BAD_REQUEST)
+
+        # Достаём релевантные чанки
+        MY_LOGGER.debug(f'Достаём релевантные чанки из БД.')
+        base_text = relevant_text_preparation(query=request.GET.get('msg'))
+
+        # Кидаем запрос к ChatGPT
+        MY_LOGGER.debug(f'Кидаем запрос к ChatGPT')
+        prompt = PromptsAI.objects.get(name='consultant').only('prompt').prompt
+        gpt_answer = request_to_gpt(
+            content=f"Документ с информацией для ответа клиенту: {base_text}\n\n"
+                    f"Вопрос клиента:\n{request.GET.get('msg')}",
+            system=prompt
+        )
+        if not gpt_answer:
+            MY_LOGGER.warning(f'Неудалось получить ответ от ChatGPT. Отдаём ответ с инфой об ошибке.')
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(data={'gpt_answer': gpt_answer}, status=status.HTTP_200_OK)
+
+        # TODO: вроде допилил обработку запроса. Не тестил. Нужно прописать ещё промпт так, чтобы он впаривал услуги.
 
 
 def test_view(request):
-    chunks = make_embeddings(knowledge_base_path='/home/da/PycharmProjects/osa_expert_admin/База_знаний_УИИ.txt')
-    context = {
-        'chunks': chunks,
-    }
+    # chunks = make_embeddings(knowledge_base_path='/home/da/PycharmProjects/osa_expert_admin/База_знаний_УИИ.txt')
+
+    # Отбираем более релевантные куски базового текста (base_text), согласно запросу (query)
+    query = 'Сколько человек уже выбрали УИИ'
+    relevant_text_preparation(query=query)
+    context = {}
     return render(request, template_name='osa_gpt/test.html', context=context)

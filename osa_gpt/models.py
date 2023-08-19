@@ -58,3 +58,16 @@ class KnowledgeBaseChunks(models.Model):
         ordering = ['-id']
         verbose_name = 'чанк базы знаний'
         verbose_name_plural = 'чанки базы знаний'
+
+
+class PromptsAI(models.Model):
+    """
+    Модель для хранения промптов для ИИ
+    """
+    name = models.CharField(verbose_name='название промпта', max_length=50, db_index=True)
+    prompt = models.TextField(verbose_name='промпт')
+
+    class Meta:
+        ordering = ['-id']
+        verbose_name = 'промпт'
+        verbose_name_plural = 'промпты'

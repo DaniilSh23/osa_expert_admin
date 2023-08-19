@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from osa_gpt.models import BotUser, BotSettings, Applications, KnowledgeBaseChunks
+from osa_gpt.models import BotUser, BotSettings, Applications, KnowledgeBaseChunks, PromptsAI
 
 
 @admin.register(BotUser)
@@ -55,11 +55,11 @@ class ApplicationsAdmin(admin.ModelAdmin):
 class KnowledgeBaseChunksAdmin(admin.ModelAdmin):
     list_display = (
         "pk",
-        "text_short"
+        "text_short",
     )
     list_display_links = (
         "pk",
-        "text_short"
+        "text_short",
     )
 
     def text_short(self, obj: KnowledgeBaseChunks):
@@ -69,3 +69,25 @@ class KnowledgeBaseChunksAdmin(admin.ModelAdmin):
         if len(obj.text) < 48:
             return obj.text
         return ''.join([obj.text[:48], '...'])
+
+
+@admin.register(PromptsAI)
+class PromptsAIAdmin(admin.ModelAdmin):
+    list_display = (
+        "pk",
+        "name",
+        "prompt_short",
+    )
+    list_display_links = (
+        "pk",
+        "name",
+        "prompt_short",
+    )
+
+    def prompt_short(self, obj: PromptsAI):
+        """
+        Метод, который возвращает сокращенное описание, если оно длиннее 48 символов.
+        """
+        if len(obj.prompt) < 48:
+            return obj.prompt
+        return ''.join([obj.prompt[:48], '...'])
