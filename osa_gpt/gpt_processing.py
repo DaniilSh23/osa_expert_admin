@@ -79,3 +79,24 @@ def request_to_gpt(system, content, temp=0):
 
     answer = completion.choices[0].message.content
     return answer  # возвращает ответ
+
+
+def summarize_questions(system, dialog, summarized_history=None):
+    """
+    Функция для саммаризации диалогов.
+    """
+    history_with_context = f"\n\nКраткий обзор предыдущего диалога: {summarized_history}"
+    messages = [
+        {"role": "system", "content": system},
+        {"role": "user",
+         "content": f"Саммаризируй следующий диалог менеджера по продажам и клиента: {dialog}"
+                    f"{history_with_context if summarized_history else ''}"}
+    ]
+    # Применяем модель gpt-3.5-turbo-0613 для саммаризации вопросов
+    completion = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-0613",
+        messages=messages,
+        temperature=0.3,  # Используем более низкую температуру для более определенной саммаризации
+        max_tokens=1000  # Ограничиваем количество токенов для саммаризации
+    )
+    return completion.choices[0].message.content

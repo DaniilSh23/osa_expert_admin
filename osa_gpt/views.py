@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 
 from osa_expert_admin.settings import MY_LOGGER, BOT_TOKEN
 from osa_gpt.forms import NewApplicationForm
-from osa_gpt.gpt_processing import make_embeddings, relevant_text_preparation, request_to_gpt
+from osa_gpt.gpt_processing import make_embeddings, relevant_text_preparation, request_to_gpt, summarize_questions
 from osa_gpt.models import BotUser, BotSettings, Applications, KnowledgeBaseChunks, PromptsAI
 from osa_gpt.serializers import GetSettingsSerializer
 from osa_gpt.tasks import send_notifications, knowledge_base_processing
@@ -201,8 +201,18 @@ class AnswerGPT(APIView):
 def test_view(request):
     # chunks = make_embeddings(knowledge_base_path='/home/da/PycharmProjects/osa_expert_admin/База_знаний_УИИ.txt')
 
-    # Отбираем более релевантные куски базового текста (base_text), согласно запросу (query)
-    query = 'Сколько человек уже выбрали УИИ'
-    relevant_text_preparation(query=query)
-    context = {}
+    # # Отбираем более релевантные куски базового текста (base_text), согласно запросу (query)
+    # query = 'Сколько человек уже выбрали УИИ'
+    # relevant_text_preparation(query=query)
+
+    # Саммаризация диалогов
+    dialog = ('\nКлиент: Что мне нужно сделать в первую очередь, когда автосервис некачественно отремонтировал мой автомобиль\n'
+              'Менеджер: Соберите все документы, которые получали от сервиса после ремонта и составьте претензию в произвольном виде.'
+              'обществом содействия автомобилистам и помогает людям добиваться справедливости и отстаивать свои права.')
+    summarized_history = 'Клиент по имени Иван интересуется деятельностью компании ОСА Автоэксперт. Менеджер объясняет, что компания является обществом содействия автомобилистам и помогает людям защищать свои права и добиваться справедливости.'
+    summary_result = summarize_questions(dialog=dialog, summarized_history=summarized_history)
+
+    context = {
+        'summary_result': summary_result,
+    }
     return render(request, template_name='osa_gpt/test.html', context=context)
