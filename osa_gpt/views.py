@@ -185,7 +185,7 @@ class AnswerGPT(APIView):
 
         # Кидаем запрос к ChatGPT
         MY_LOGGER.debug(f'Кидаем запрос к ChatGPT')
-        prompt = PromptsAI.objects.get(name='consultant').only('prompt').prompt
+        prompt = PromptsAI.objects.only('prompt').get(name='consultant').prompt
         gpt_answer = request_to_gpt(
             content=f"Документ с информацией для ответа клиенту: {base_text}\n\n"
                     f"Вопрос клиента:\n{request.GET.get('msg')}",
@@ -196,8 +196,6 @@ class AnswerGPT(APIView):
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
         return Response(data={'gpt_answer': gpt_answer}, status=status.HTTP_200_OK)
-
-        # TODO: вроде допилил обработку запроса. Не тестил. Нужно прописать ещё промпт так, чтобы он впаривал услуги.
 
 
 def test_view(request):

@@ -16,17 +16,25 @@ class Command(BaseCommand):
                 'bot_admins': '1978587604',
             }
             for i_key, i_val in keys.items():
-                _, i_created = BotSettings.objects.get_or_create(
+                _, i_created = BotSettings.objects.update_or_create(
                     key=i_key,
                     defaults={'key': i_key, 'value': i_val}
                 )
                 logger.success(f'Ключ {i_key} успешно {"создан" if i_created else "получен"} со значением {i_val}')
 
             prompts = (
-                ('consultant', 'Текст промпта для консультанта'),
+                ('consultant', 'Ты опытный консультант клиентов компании "ОСА Автоэксперт". '
+                               'У тебя есть большой документ со всеми материалами о специфике работы компании, '
+                               'требованиях законодательства и популярными кейсами, '
+                               'которые очень полезны для потенциальных клиентов компании.'
+                               'Тебе задаёт вопрос потенциальный клиент компании, дай ему ответ, опираясь на документ.'
+                               'Отвечай максимально точно по документу, не придумывай ничего от себя.'
+                               'Не упоминай документ при ответе. Постарайся построить свой ответ так, '
+                               'чтобы клиент захотел связаться с экспертом компании и воспользоваться услугами. '
+                               'Документ с информацией для ответа специалисту:'),
             )
             for i_name, i_prompt in prompts:
-                _, i_created = PromptsAI.objects.get_or_create(
+                _, i_created = PromptsAI.objects.update_or_create(
                     name=i_name,
                     defaults={'name': i_name, 'prompt': i_prompt}
                 )
