@@ -172,10 +172,10 @@ CELERY_BROKER_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}"    # Это адрес 
 CELERY_RESULT_BACKEND = f"redis://{REDIS_HOST}:{REDIS_PORT}"    # Это адрес бэкэнда результатов (тоже у нас Redis)
 CELERY_TIMEZONE = "Europe/Moscow"   # Временная зона для Celery
 CELERY_BEAT_SCHEDULE = {    # Настройки шедуля
-    'test_task': {
-        'task': 'osa_gpt.tasks.scheduled_task_example',
-        'schedule': 10
-    }
+    # 'test_task': {
+    #     'task': 'osa_gpt.tasks.scheduled_task_example',
+    #     'schedule': 10
+    # }
 }
 
 # Настройки логгера
