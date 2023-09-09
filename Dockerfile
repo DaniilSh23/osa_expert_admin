@@ -1,8 +1,8 @@
 FROM python:3.10-slim
 
-RUN mkdir "cfu_mytlg_admin"
+RUN mkdir "osa_expert_admin"
 
-COPY requirements.txt /cfu_mytlg_admin/
+COPY requirements.txt /osa_expert_admin/
 
 RUN apt update
 
@@ -12,11 +12,11 @@ RUN apt-get install build-essential -y
 
 RUN pip install psycopg2-binary
 
-RUN python -m pip install --no-cache-dir -r /cfu_mytlg_admin/requirements.txt
+RUN python -m pip install --no-cache-dir -r /osa_expert_admin/requirements.txt
 
-COPY . /cfu_mytlg_admin/
+COPY . /osa_expert_admin/
 
-WORKDIR /cfu_mytlg_admin
+WORKDIR /osa_expert_admin
 
 # Ниже команды для создания суперпользователя в Django
 ENV DJANGO_SUPERUSER_USERNAME=admin
@@ -27,4 +27,4 @@ ENV DJANGO_SUPERUSER_EMAIL=my@dmin.com
 EXPOSE 8000
 
 # Запуск
-ENTRYPOINT ["/cfu_mytlg_admin/entrypoint.sh"]
+ENTRYPOINT ["/osa_expert_admin/entrypoint.sh"]
