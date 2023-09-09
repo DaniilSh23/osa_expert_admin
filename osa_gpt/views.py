@@ -185,7 +185,7 @@ class AnswerGPT(APIView):
 
         # Кидаем запрос к ChatGPT
         MY_LOGGER.debug(f'Кидаем запрос к ChatGPT')
-        prompt = PromptsAI.objects.only('prompt').get(name='consultant').prompt
+        prompt = PromptsAI.objects.get(name='consultant').prompt
         gpt_answer = request_to_gpt(
             content=f"Документ с информацией для ответа клиенту: {base_text}\n\n"
                     f"Вопрос клиента:\n{request.GET.get('msg')}",
